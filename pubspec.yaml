@@ -1,0 +1,46 @@
+name: university_asset_maintenance
+description: A Flutter app for university asset maintenance system.
+publish_to: 'none' # this is not a package
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path_provider: ^2.0.14
+
+  # State management & local DB
+  provider: ^6.1.5
+  sqflite: ^2.4.2
+  path: ^1.9.1
+
+  # Firebase (if you’re using FCM)
+  firebase_core: ^2.20.1
+  firebase_messaging: ^14.5.0
+
+  # Local notifications
+  flutter_local_notifications: ^19.1.0
+
+  # Picking images/videos
+  image_picker: ^0.8.9
+
+  # For generating random IDs
+  uuid: ^3.0.6
+
+  # Needed to run sqflite on web via ffi
+  sqflite_common_ffi_web: ^1.0.0
+
+  shared_preferences: ^2.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/

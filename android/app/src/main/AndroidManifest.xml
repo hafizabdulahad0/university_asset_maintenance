@@ -1,0 +1,78 @@
+<manifest 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.university_asset_maintenance">
+
+  <!-- 1. Required permissions for FCM -->
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK"/>
+  <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+  
+  <!-- Only your app may receive its own messages -->
+  <permission
+      android:name="${applicationId}.permission.C2D_MESSAGE"
+      android:protectionLevel="signature"/>
+  <uses-permission android:name="${applicationId}.permission.C2D_MESSAGE"/>
+
+  <application
+      android:name="${applicationName}"
+      android:label="university_asset_maintenance"
+      android:icon="@mipmap/ic_launcher">
+
+    <!-- 2. Default channel for notifications -->
+    <meta-data
+        android:name="com.google.firebase.messaging.default_notification_channel_id"
+        android:value="high_importance_channel"/>
+
+    <activity
+        android:name=".MainActivity"
+        android:exported="true"
+        android:launchMode="singleTop"
+        android:theme="@style/LaunchTheme"
+        android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+        android:hardwareAccelerated="true"
+        android:windowSoftInputMode="adjustResize">
+      <meta-data
+          android:name="io.flutter.embedding.android.NormalTheme"
+          android:resource="@style/NormalTheme"/>
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+
+    <!-- 3. Override the exported flag on the FCM service -->
+    <service
+        android:name="com.google.firebase.messaging.FirebaseMessagingService"
+        android:exported="true"
+        tools:replace="android:exported">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+      </intent-filter>
+    </service>
+
+    <!-- 4. (Optional) FlutterFire Messaging background handler -->
+    <service
+        android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService"
+        android:exported="false">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+      </intent-filter>
+    </service>
+
+    <!-- 5. Receiver for data-only messages on legacy Android -->
+    <receiver
+        android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingReceiver"
+        android:exported="true">
+      <intent-filter>
+        <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+      </intent-filter>
+    </receiver>
+
+    <!-- Flutter embedding metadata -->
+    <meta-data
+        android:name="flutterEmbedding"
+        android:value="2"/>
+
+  </application>
+</manifest>

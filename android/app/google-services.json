@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "432676505344",
+    "project_id": "uam-app",
+    "storage_bucket": "uam-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432676505344:android:136e5f74e37b379d7f95e5",
+        "android_client_info": {
+          "package_name": "com.example.university_asset_maintenance"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-Yl8H15B_pIsmVops2CnF4HUNimMSpaw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
