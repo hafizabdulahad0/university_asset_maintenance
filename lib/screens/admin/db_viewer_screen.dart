@@ -1,9 +1,8 @@
-// File: lib/screens/admin/db_viewer_screen.dart
-
 import 'package:flutter/material.dart';
 import '../../helpers/db_helper.dart';
 import '../../models/user_model.dart';
 import '../../models/complaint_model.dart';
+import '../home_screen.dart'; // <-- Import for redirection
 
 class DbViewerScreen extends StatefulWidget {
   const DbViewerScreen({Key? key}) : super(key: key);
@@ -66,6 +65,18 @@ class _DbViewerScreenState extends State<DbViewerScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Database Tables'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const HomeScreen()),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
           bottom: const TabBar(tabs: [
             Tab(text: 'Users'),
             Tab(text: 'Complaints'),

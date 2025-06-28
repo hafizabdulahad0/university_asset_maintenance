@@ -1,10 +1,9 @@
 // File: lib/helpers/db_helper.dart
 
-import 'dart:io';
+import 'dart:io' show File, Directory, Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../models/user_model.dart';
 import '../models/complaint_model.dart';
@@ -12,9 +11,15 @@ import '../models/complaint_model.dart';
 class DBHelper {
   static late final Database _db;
 
-  /// Initialize the database (no-op on web).
+  /// Initialize the database. On web this is a no-op.
   static Future<void> initDb() async {
     if (kIsWeb) return;
+
+    // On desktop, tell sqflite to use the ffi implementation:
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
 
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'asset_maintenance.db');
@@ -23,7 +28,7 @@ class DBHelper {
       path,
       version: 2,
       onCreate: (db, version) async {
-        // ─── Create tables ───────────────────────────────────────────────
+        // Users table
         await db.execute('''
           CREATE TABLE users(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,6 +38,8 @@ class DBHelper {
             role TEXT    NOT NULL
           );
         ''');
+
+        // Complaints table
         await db.execute('''
           CREATE TABLE complaints(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,8 +64,7 @@ class DBHelper {
       },
     );
 
-    // ─── Always seed the supervisor account ─────────────────────────────────
-    // Uses IGNORE so it won't overwrite if already present
+    // Seed supervisor account (won't overwrite if exists)
     await _db.insert(
       'users',
       {
@@ -70,26 +76,29 @@ class DBHelper {
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
 
-    // ─── Export the DB file to project root (desktop) or external storage (mobile) ───
+    // Export DB to project root (desktop) or external storage (mobile)
     await exportDatabase();
   }
 
-  /// Copies the on-device DB into:
+  /// Copy the on-device DB into:
   ///  • project root as `asset_maintenance.db` (desktop)
-  ///  • external storage as `asset_maintenance.db` (mobile)
+  ///  • the device’s Downloads (mobile)
   static Future<void> exportDatabase() async {
+    if (kIsWeb) return;
+
     final srcPath =
         await getDatabasesPath().then((p) => join(p, 'asset_maintenance.db'));
     final srcFile = File(srcPath);
     if (!await srcFile.exists()) return;
 
     String destPath;
-    if (!kIsWeb &&
-        (Platform.isMacOS || Platform.isWindows || Platform.isLinux)) {
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      // Project root
       destPath = join(Directory.current.path, 'asset_maintenance.db');
     } else {
-      final extDir = await getExternalStorageDirectory();
-      destPath = join(extDir!.path, 'asset_maintenance.db');
+      // Android/iOS: put in Downloads so adb pull can find it
+      final downloads = '/storage/emulated/0/Download';
+      destPath = join(downloads, 'asset_maintenance.db');
     }
 
     await srcFile.copy(destPath);
@@ -102,14 +111,12 @@ class DBHelper {
   static Future<User?> getUserByEmail(String email) async {
     final maps =
         await _db.query('users', where: 'email = ?', whereArgs: [email]);
-    if (maps.isEmpty) return null;
-    return User.fromMap(maps.first);
+    return maps.isEmpty ? null : User.fromMap(maps.first);
   }
 
   static Future<User?> getUserById(int id) async {
     final maps = await _db.query('users', where: 'id = ?', whereArgs: [id]);
-    if (maps.isEmpty) return null;
-    return User.fromMap(maps.first);
+    return maps.isEmpty ? null : User.fromMap(maps.first);
   }
 
   static Future<List<User>> getAllUsers() async {
@@ -117,32 +124,26 @@ class DBHelper {
     return maps.map(User.fromMap).toList();
   }
 
-  static Future<int> updateUser(User user) async =>
+  static Future<int> updateUser(User user) =>
       _db.update('users', user.toMap(), where: 'id = ?', whereArgs: [user.id]);
 
-  static Future<void> deleteUser(int id) async =>
+  static Future<void> deleteUser(int id) =>
       _db.delete('users', where: 'id = ?', whereArgs: [id]);
 
   // ─── COMPLAINT METHODS ────────────────────────────────────────────────────────
 
-  static Future<int> insertComplaint(Complaint c) async =>
+  static Future<int> insertComplaint(Complaint c) =>
       _db.insert('complaints', c.toMap());
 
   static Future<List<Complaint>> getComplaintsByTeacher(int teacherId) async {
-    final maps = await _db.query(
-      'complaints',
-      where: 'teacherId = ?',
-      whereArgs: [teacherId],
-    );
+    final maps = await _db
+        .query('complaints', where: 'teacherId = ?', whereArgs: [teacherId]);
     return maps.map(Complaint.fromMap).toList();
   }
 
   static Future<List<Complaint>> getUnassignedComplaints() async {
-    final maps = await _db.query(
-      'complaints',
-      where: 'status = ?',
-      whereArgs: ['unassigned'],
-    );
+    final maps = await _db
+        .query('complaints', where: 'status = ?', whereArgs: ['unassigned']);
     return maps.map(Complaint.fromMap).toList();
   }
 
@@ -157,11 +158,8 @@ class DBHelper {
   }
 
   static Future<List<Complaint>> getNeedsVerificationComplaints() async {
-    final maps = await _db.query(
-      'complaints',
-      where: 'status = ?',
-      whereArgs: ['needs_verification'],
-    );
+    final maps = await _db.query('complaints',
+        where: 'status = ?', whereArgs: ['needs_verification']);
     return maps.map(Complaint.fromMap).toList();
   }
 
@@ -170,9 +168,9 @@ class DBHelper {
     return maps.map(Complaint.fromMap).toList();
   }
 
-  static Future<int> updateComplaint(Complaint c) async =>
+  static Future<int> updateComplaint(Complaint c) =>
       _db.update('complaints', c.toMap(), where: 'id = ?', whereArgs: [c.id]);
 
-  static Future<void> deleteComplaint(int id) async =>
+  static Future<void> deleteComplaint(int id) =>
       _db.delete('complaints', where: 'id = ?', whereArgs: [id]);
 }

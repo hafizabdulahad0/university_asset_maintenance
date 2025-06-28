@@ -182,7 +182,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
 
             // Vertical stats cards
-            _buildStatCard('Total', _total, Colors.blue),
+            _buildStatCard('Total', _total, Colors.red),
             _buildStatCard('Unassigned', _unassigned, Colors.orange),
             _buildStatCard('Assigned', _assigned, Colors.indigo),
             _buildStatCard('Needs Ver.', _needsVer, Colors.purple),
@@ -193,7 +193,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             // Complaints title
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text('All Complaints',
+              child: Text('Complaints List',
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium!
@@ -206,7 +206,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               color: Theme.of(context).cardColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.grey.shade300),
+                side: BorderSide(color: Colors.white),
               ),
               elevation: 2,
               child: SingleChildScrollView(
